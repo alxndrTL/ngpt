@@ -102,8 +102,8 @@ class DecoderLayer(nn.Module):
         # X : (B, L, D)
         # -> Y : (B, L, D)
 
-        X = F.normalize(X + self.sa_scaler * (F.normalize(self.sa(X)) - X))
-        X = F.normalize(X + self.mlp_scaler * (F.normalize(self.mlp(X)) - X))
+        X = F.normalize(X + self.sa_scaler * (F.normalize(self.sa(X), dim=-1) - X), dim=-1)
+        X = F.normalize(X + self.mlp_scaler * (F.normalize(self.mlp(X), dim=-1) - X), dim=-1)
 
         return X
     
@@ -138,13 +138,16 @@ class SelfAttentionMultiHead(nn.Module):
         self.c_k.NORMALIZE = 1
         self.c_v.NORMALIZE = 1
 
+        # todo : what about n_kv_heads != d_head?
+        self.qk_scaler = Scaler(dim=self.config.d_head, init=1, scale=1/math.sqrt(self.config.d_model))
+
         self.c_proj = nn.Linear(config.d_model, config.d_model, bias=False)
         self.c_proj.NORMALIZE = 1
 
         self.rotary = Rotary(config.d_head)
 
         #self.scale = self.config.mup_attn_mult/self.config.d_head if self.config.mup else 1/math.sqrt(self.config.d_head)
-        self.scale = 1/math.sqrt(self.config.d_head)
+        self.scale = math.sqrt(self.config.d_head)
 
     def forward(self, x, cache=None):
         B, T, _ = x.size()
@@ -164,6 +167,10 @@ class SelfAttentionMultiHead(nn.Module):
         # GQA : expand K and V to compute standard attention
         k = repeat_kv(k, self.config.kv_rep)
         v = repeat_kv(v, self.config.kv_rep)
+
+        # qk norm and rescaling
+        q = self.qk_scaler * F.normalize(q, dim=-1)
+        k = self.qk_scaler * F.normalize(k, dim=-1)
 
         # attention computation
         y = F.scaled_dot_product_attention(q, k, v, is_causal=(cache is None), scale=self.scale)

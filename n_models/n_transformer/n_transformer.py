@@ -90,10 +90,7 @@ class DecoderLayer(nn.Module):
         self.sa_scale = (1 / math.sqrt(2 * config.n_layers))
 
         self.attention_norm = Norm(config.d_model, config.norm_eps, config.mup) # to define
-        if config.diff_transformer:
-            self.sa = SelfDifferientialAttentionMultiHead(config, depth)
-        else:
-            self.sa = SelfAttentionMultiHead(config)
+        self.sa = SelfAttentionMultiHead(config)
         self.mlp_norm = Norm(config.d_model, config.norm_eps, config.mup) # to define
         self.mlp = MLP(config)
         

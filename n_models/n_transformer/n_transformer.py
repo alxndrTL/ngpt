@@ -12,6 +12,9 @@ from models.transformer.rope import Rotary, apply_rotary_emb
 caching is WIP
 """
 
+SCALER_INIT_SA = 0.05
+SCALER_INIT_MLP = 0.05
+
 #todo : mettre des optional la ou on peut
 @dataclass
 class TransformerConfig:
@@ -86,20 +89,21 @@ class Transformer(nn.Module):
 class DecoderLayer(nn.Module):
     def __init__(self, config: TransformerConfig, depth: int):
         super().__init__()
-
-        self.sa_scale = (1 / math.sqrt(2 * config.n_layers))
-
-        self.attention_norm = Norm(config.d_model, config.norm_eps, config.mup) # to define
+        
+        # not kept positive, paper says perf is the same
+        self.sa_scaler = Scaler(dim=config.d_model, init=SCALER_INIT_SA, scale=1/math.sqrt(config.model))
         self.sa = SelfAttentionMultiHead(config)
-        self.mlp_norm = Norm(config.d_model, config.norm_eps, config.mup) # to define
+
+        # not kept positive, paper says perf is the same
+        self.mlp_scaler = Scaler(dim=config.d_model, init=SCALER_INIT_MLP, scale=1/math.sqrt(config.d_model))
         self.mlp = MLP(config)
         
     def forward(self, X):
         # X : (B, L, D)
         # -> Y : (B, L, D)
 
-        X = X + self.sa_scale * self.sa(self.attention_norm(X))
-        X = X + self.mlp(self.mlp_norm(X))
+        X = F.normalize(X + self.sa_scaler * (F.normalize(self.sa(X)) - X))
+        X = F.normalize(X + self.mlp_scaler * (F.normalize(self.mlp(X)) - X))
 
         return X
     
@@ -169,6 +173,15 @@ class SelfAttentionMultiHead(nn.Module):
         y = self.c_proj(y)
         return y
     
+class Scaler(nn.Module):
+    def __init__(self, dim, init, scale):
+        super().__init__()
+        self.scale = nn.Parameter(torch.ones(dim) * scale)
+        self.forward_scale = init / scale
+
+    def forward(self):
+        return self.scale * self.forward_scale
+
 # taken from modeling_jamba.py (jamba official implementation)
 # the same as the one in llama2.c model.py, but dim of repeat is 1 instead of 2
 def repeat_kv(hidden_states: torch.Tensor, n_rep: int) -> torch.Tensor:

@@ -2,9 +2,18 @@
 default config is 124M Transformer
 """
 
+import math
+
 from models.transformer.transformer import TransformerConfig
 from models.mamba.mamba import MambaConfig
 from models.mamba.mamba2 import Mamba2Config
+
+"""
+for nGPT, check that:
+-WD = 0
+-no LR warmup
+-base_std = 1/math.sqrt(d_model)
+"""
 
 # ---------------------------------------------
 
@@ -22,7 +31,7 @@ ctx_len = 1024
 architecture = "Transformer" # "Transformer", "Mamba" or "Mamba2"
 d_model = 64
 n_layers = 12
-base_std = 0.02
+base_std = 1/math.sqrt(d_model)
 
 # Mamba specific
 use_cuda = True # choose True if you can (mamba-ssm installed). else, fallbacks to mamba.py (https://github.com/alxndrTL/mamba.py)

@@ -184,6 +184,8 @@ try:
         optim.step()
         optim.zero_grad(set_to_none=True)
 
+        model.norm_weights()
+
         t1 = time.time()
 
         # lr decay

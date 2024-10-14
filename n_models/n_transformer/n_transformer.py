@@ -116,6 +116,10 @@ class MLP(nn.Module):
         self.fc_1 = nn.Linear(config.d_model, config.d_ff, bias=False)
         self.fc_2 = nn.Linear(config.d_ff, config.d_model, bias=False)
         self.fc_3 = nn.Linear(config.d_model, config.d_ff, bias=False)
+        self.fc_1.NORMALIZE = 1
+        self.fc_2.NORMALIZE = 1
+        self.fc_3.NORMALIZE = 1
+
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
@@ -126,8 +130,16 @@ class SelfAttentionMultiHead(nn.Module):
         super().__init__()
         self.config = config
         
-        self.c_attn = nn.Linear(config.d_model, (config.n_heads + 2 * config.n_kv_heads) * self.config.d_head, bias=False)
+        self.c_q = nn.Linear(config.d_model, config.n_heads * config.d_head, bias=False)
+        self.c_k = nn.Linear(config.d_model, config.n_kv_heads * config.d_head, bias=False)
+        self.c_v = nn.Linear(config.d_model, config.n_kv_heads * config.d_head, bias=False)
+        self.c_q.NORMALIZE = 1
+        self.c_k.NORMALIZE = 1
+        self.c_v.NORMALIZE = 1
+
         self.c_proj = nn.Linear(config.d_model, config.d_model, bias=False)
+        self.c_proj.NORMALIZE = 1
+
         self.rotary = Rotary(config.d_head)
 
         #self.scale = self.config.mup_attn_mult/self.config.d_head if self.config.mup else 1/math.sqrt(self.config.d_head)
@@ -137,9 +149,9 @@ class SelfAttentionMultiHead(nn.Module):
         B, T, _ = x.size()
 
         # q,k,v computations
-        qkv = self.c_attn(x)
-        q, k, v = qkv.split([self.config.n_heads * self.config.d_head, self.config.n_kv_heads * self.config.d_head, self.config.n_kv_heads * self.config.d_head], dim=-1)
-        q, k, v = map(lambda t: t.view(B, T, -1, self.config.d_head), (q, k, v)) # (B, T, n_heads, d_head)
+        q = self.c_q(x).view(B, T, self.config.n_heads, self.config.d_head)
+        k = self.c_k(x).view(B, T, self.config.n_heads, self.config.n_kv_heads)
+        v = self.c_v(x).view(B, T, self.config.n_heads, self.config.n_kv_heads)
 
         # RoPE
         cos, sin = self.rotary(q)

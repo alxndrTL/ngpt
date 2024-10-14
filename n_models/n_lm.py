@@ -29,6 +29,7 @@ class LM(nn.Module):
         self.rng = rng
 
         self.embedding = nn.Embedding(self.vocab_size, self.config.d_model)
+        self.embedding.NORMALIZE = 1
         
         if isinstance(self.config, TransformerConfig):
             self.core = Transformer(self.config)
@@ -40,7 +41,8 @@ class LM(nn.Module):
             raise NotImplementedError
 
         self.lm_head = nn.Linear(self.config.d_model, self.vocab_size, bias=False)
-        self.embedding.weight = self.lm_head.weight
+        self.lm_head.NORMALIZE = 1
+        #self.embedding.weight = self.lm_head.weight
 
         if rng is None:
             rng = torch.Generator()
@@ -154,6 +156,12 @@ class LM(nn.Module):
             return loss
         else:
             return logits, caches
+    
+    @torch.no_grad()
+    def norm_weights(self):
+        for module in self.modules():
+            if hasattr(module, 'NORMALIZE'):
+                F.normalize(module.weight)
         
     def generate(self, prompt, num_tokens: int, sample: bool = True, top_k: int = None, temperature: float = 1.0):
         # prompt : (B, L)

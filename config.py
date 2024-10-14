@@ -57,7 +57,7 @@ micro_batch_size = 16 # 16 for width=768, 32 for width=64
 schedule = "wsd" # "cosine" or "wsd"
 
 lr = 2**(-7)
-lr_warmup_iters = 200
+lr_warmup_iters = 0
 
 # cosine schedule specific
 lr_min = lr/10
@@ -67,7 +67,7 @@ lr_decay_iters = 1000 # 10-20% of num_iters
 
 optimizer = "AdamW" # "AdamW" or "Ademamix" or "AdamWScheduleFree"
 
-weight_decay = 0.1
+weight_decay = 0.
 adam_b1 = 0.9
 adam_b2 = 0.95
 

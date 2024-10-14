@@ -89,12 +89,12 @@ class DecoderLayer(nn.Module):
 
         self.sa_scale = (1 / math.sqrt(2 * config.n_layers))
 
-        self.attention_norm = RMSNorm(config.d_model, config.norm_eps, config.mup)
+        self.attention_norm = Norm(config.d_model, config.norm_eps, config.mup) # to define
         if config.diff_transformer:
             self.sa = SelfDifferientialAttentionMultiHead(config, depth)
         else:
             self.sa = SelfAttentionMultiHead(config)
-        self.mlp_norm = RMSNorm(config.d_model, config.norm_eps, config.mup)
+        self.mlp_norm = Norm(config.d_model, config.norm_eps, config.mup) # to define
         self.mlp = MLP(config)
         
     def forward(self, X):
@@ -223,22 +223,6 @@ class SelfDifferientialAttentionMultiHead(nn.Module):
         attn = attn.transpose(1, 2).contiguous().view(B, T, self.config.d_model)
         y = self.c_proj(attn)
         return y
-
-# todo : remove dim, use_mup
-class RMSNorm(nn.Module):
-    def __init__(self, eps: float):
-        super().__init__()
-
-        self.eps = eps
-
-        # https://arxiv.org/abs/2404.05728 RMSNorm gains prevents muTransfer (section 4.2.3)
-
-    def _norm(self, x):
-        return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
-
-    def forward(self, x):
-        output = self._norm(x.float()).type_as(x)
-        return output
 
 # taken from modeling_jamba.py (jamba official implementation)
 # the same as the one in llama2.c model.py, but dim of repeat is 1 instead of 2

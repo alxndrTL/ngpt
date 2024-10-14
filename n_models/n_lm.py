@@ -16,7 +16,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from models.transformer.transformer import Transformer, TransformerConfig, RMSNorm
+from models.transformer.transformer import Transformer, TransformerConfig
 from models.mamba.mamba2 import Mamba2, Mamba2Config
 from models.mamba.mamba import Mamba, MambaConfig
 
@@ -38,8 +38,6 @@ class LM(nn.Module):
             self.core = Mamba2(self.config)
         else:
             raise NotImplementedError
-
-        self.out_norm = RMSNorm(self.config.d_model, self.config.norm_eps, self.config.mup)
 
         self.lm_head = nn.Linear(self.config.d_model, self.vocab_size, bias=False)
         self.embedding.weight = self.lm_head.weight
@@ -145,8 +143,6 @@ class LM(nn.Module):
             x = self.core(x)
         else:
             x, caches = self.core(x, caches, seq_pos)
-
-        x = self.out_norm(x)
 
         if self.config.mup:
             x = x / self.config.mup_width_mult

@@ -114,6 +114,8 @@ class MLP(nn.Module):
     def __init__(self, config: TransformerConfig):
         super().__init__()
 
+        self.config = config
+
         self.fc_1 = nn.Linear(config.d_model, config.d_ff, bias=False)
         self.fc_2 = nn.Linear(config.d_ff, config.d_model, bias=False)
         self.fc_3 = nn.Linear(config.d_model, config.d_ff, bias=False)
@@ -121,10 +123,16 @@ class MLP(nn.Module):
         self.fc_2.NORMALIZE = 1
         self.fc_3.NORMALIZE = 1
 
+        self.fc1_scaler = Scaler(dim=config.d_ff, init=1, scale=1) # fc1(x) is v
+        self.fc3_scaler = Scaler(dim=config.d_ff, init=1, scale=1) # fc3(x) is u
+
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
-        return self.dropout(self.fc_2(F.silu(self.fc_1(x)) * self.fc_3(x)))
+        u = self.fc3_scaler * self.fc_3(x)
+        v = self.fc1_scaler * self.fc_1(x) * math.sqrt(self.config.d_model)
+
+        return self.dropout(self.fc_2(F.silu(v) * u))
 
 class SelfAttentionMultiHead(nn.Module):
     def __init__(self, config: TransformerConfig):

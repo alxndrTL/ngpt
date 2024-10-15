@@ -12,8 +12,8 @@ from models.transformer.rope import Rotary, apply_rotary_emb
 caching is WIP
 """
 
-SCALER_INIT_SA = 0.05
-SCALER_INIT_MLP = 0.05
+SCALER_INIT_SA = 0.08
+SCALER_INIT_MLP = 0.08
 
 #todo : mettre des optional la ou on peut
 @dataclass
@@ -91,7 +91,7 @@ class DecoderLayer(nn.Module):
         super().__init__()
         
         # not kept positive, paper says perf is the same
-        self.sa_scaler = Scaler(dim=config.d_model, init=SCALER_INIT_SA, scale=1/math.sqrt(config.model))
+        self.sa_scaler = Scaler(dim=config.d_model, init=SCALER_INIT_SA, scale=1/math.sqrt(config.d_model))
         self.sa = SelfAttentionMultiHead(config)
 
         # not kept positive, paper says perf is the same
@@ -102,8 +102,8 @@ class DecoderLayer(nn.Module):
         # X : (B, L, D)
         # -> Y : (B, L, D)
 
-        X = F.normalize(X + self.sa_scaler * (F.normalize(self.sa(X), dim=-1) - X), dim=-1)
-        X = F.normalize(X + self.mlp_scaler * (F.normalize(self.mlp(X), dim=-1) - X), dim=-1)
+        X = F.normalize(X + self.sa_scaler() * (F.normalize(self.sa(X), dim=-1) - X), dim=-1)
+        X = F.normalize(X + self.mlp_scaler() * (F.normalize(self.mlp(X), dim=-1) - X), dim=-1)
 
         return X
     
@@ -129,8 +129,8 @@ class MLP(nn.Module):
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
-        u = self.fc3_scaler * self.fc_3(x)
-        v = self.fc1_scaler * self.fc_1(x) * math.sqrt(self.config.d_model)
+        u = self.fc3_scaler() * self.fc_3(x)
+        v = self.fc1_scaler() * self.fc_1(x) * math.sqrt(self.config.d_model)
 
         return self.dropout(self.fc_2(F.silu(v) * u))
 
@@ -162,8 +162,13 @@ class SelfAttentionMultiHead(nn.Module):
 
         # q,k,v computations
         q = self.c_q(x).view(B, T, self.config.n_heads, self.config.d_head)
-        k = self.c_k(x).view(B, T, self.config.n_heads, self.config.n_kv_heads)
-        v = self.c_v(x).view(B, T, self.config.n_heads, self.config.n_kv_heads)
+        k = self.c_k(x).view(B, T, self.config.n_kv_heads, self.config.d_head)
+        v = self.c_v(x).view(B, T, self.config.n_kv_heads, self.config.d_head)
+
+        # todo : do that before rope ?
+        # qk norm and rescaling
+        q = self.qk_scaler() * F.normalize(q, dim=-1)
+        k = self.qk_scaler() * F.normalize(k, dim=-1)
 
         # RoPE
         cos, sin = self.rotary(q)
@@ -175,10 +180,6 @@ class SelfAttentionMultiHead(nn.Module):
         # GQA : expand K and V to compute standard attention
         k = repeat_kv(k, self.config.kv_rep)
         v = repeat_kv(v, self.config.kv_rep)
-
-        # qk norm and rescaling
-        q = self.qk_scaler * F.normalize(q, dim=-1)
-        k = self.qk_scaler * F.normalize(k, dim=-1)
 
         # attention computation
         y = F.scaled_dot_product_attention(q, k, v, is_causal=(cache is None), scale=self.scale)

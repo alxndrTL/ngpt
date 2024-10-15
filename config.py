@@ -4,9 +4,8 @@ default config is 124M Transformer
 
 import math
 
-from models.transformer.transformer import TransformerConfig
-from models.mamba.mamba import MambaConfig
-from models.mamba.mamba2 import Mamba2Config
+from n_models.n_transformer.n_transformer import TransformerConfig as nTransformerConfig
+#from models.transformer.transformer import TransformerConfig
 
 """
 for nGPT, check that:
@@ -46,7 +45,7 @@ d_ff = 172
 n_heads = 2
 n_kv_heads = 2 # n_heads is MHA, 1 is MQA (multi query), in between is GQA (grouped query attention)
 dropout = 0.
-diff_transformer = True
+diff_transformer = False
 
 pos_emb = "rope" # "absolute" or "rope"
 rope_theta = 10000
@@ -63,13 +62,13 @@ total_batch_size = 512
 micro_batch_size = 16 # 16 for width=768, 32 for width=64
 
 # LR and scheduler
-schedule = "wsd" # "cosine" or "wsd"
+schedule = "cosine" # "cosine" or "wsd"
 
-lr = 2**(-7)
+lr = 2**(-8)
 lr_warmup_iters = 0
 
 # cosine schedule specific
-lr_min = lr/10
+lr_min = 0
 
 # wsd schedule specific
 lr_decay_iters = 1000 # 10-20% of num_iters
@@ -86,7 +85,7 @@ alpha = 5
 
 max_grad_norm = 1.0
 
-use_torch_compile = False # do not toggle if using Mamba
+use_torch_compile = True # do not toggle if using Mamba
 
 device = "cuda" # "cpu", "cuda:0", "cuda:1", ...
 dtype = "bfloat16" # "float32" or "bfloat16"
@@ -109,7 +108,8 @@ eval_val_iters = 50
 # ---------------------------------------------
 
 if architecture == "Transformer":
-    config = TransformerConfig(d_model=d_model, n_layers=n_layers, n_heads=n_heads, n_kv_heads=n_kv_heads, d_ff=d_ff, diff_transformer=diff_transformer, pos_emb=pos_emb, rope_theta=rope_theta, base_std=base_std, mup=use_mup, mup_base_width=mup_base_width, dropout=dropout, max_len=ctx_len, flash=use_flash_attention)
+    #config = TransformerConfig(d_model=d_model, n_layers=n_layers, n_heads=n_heads, n_kv_heads=n_kv_heads, d_ff=d_ff, diff_transformer=diff_transformer, pos_emb=pos_emb, rope_theta=rope_theta, base_std=base_std, mup=use_mup, mup_base_width=mup_base_width, dropout=dropout, max_len=ctx_len, flash=use_flash_attention)
+    config = nTransformerConfig(d_model=d_model, n_layers=n_layers, n_heads=n_heads, n_kv_heads=n_kv_heads, d_ff=d_ff, diff_transformer=diff_transformer, pos_emb=pos_emb, rope_theta=rope_theta, base_std=base_std, mup=use_mup, mup_base_width=mup_base_width, dropout=dropout, max_len=ctx_len, flash=use_flash_attention)
 elif architecture == "Mamba":
     config = MambaConfig(d_model=d_model, n_layers=n_layers, bias=bias, base_std=base_std, mup=use_mup, mup_base_width=mup_base_width, use_cuda=use_cuda)
 elif architecture == "Mamba2":

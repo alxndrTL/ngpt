@@ -33,7 +33,8 @@ import torch._inductor.config as torch_ind_config
 
 from utils.lr_schedules import cosine_warmup_schedule, wsd_schedule
 
-from models.lm import LM
+from n_models.n_lm import LM
+#from models.lm import LM
 from data.dataloader import DataLoader
 from utils.misc import format_time
 from config import *
@@ -56,7 +57,7 @@ torch_dtype = {"float32": torch.float32, "float16": torch.float16, "bfloat16": t
 dtype_ctx = (nullcontext() if device_type == "cpu" else torch.amp.autocast(device_type, torch_dtype))
 
 if log_wandb:
-    wandb.init(project="arena",
+    wandb.init(project="ngpt",
             config={
                 "data": {
                     "ctx_len": ctx_len,
@@ -133,6 +134,7 @@ g = torch.Generator()
 g.manual_seed(seed)
 
 model = LM(config, vocab_size=vocab_size, rng=g).to(device)
+model.norm_weights()
 
 optim = model.configure_optimizers(optimizer, weight_decay, lr, (adam_b1, adam_b2), device_type, beta3=adam_b3, alpha=alpha, T_ab3=num_iters)
 

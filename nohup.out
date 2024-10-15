@@ -1,0 +1,26 @@
+wandb: Using wandb-core as the SDK backend. Please refer to https://wandb.me/wandb-core for more information.
+wandb: Currently logged in as: alexandretl. Use `wandb login --relogin` to force relogin
+wandb: Tracking run with wandb version 0.18.3
+wandb: Run data is saved locally in /workspace/ngpt/wandb/run-20241015_132859-candzcr2
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run glamorous-frost-6
+wandb: ⭐️ View project at https://wandb.ai/alexandretl/ngpt
+wandb: 🚀 View run at https://wandb.ai/alexandretl/ngpt/runs/candzcr2
+Run name: glamorous-frost-6.
+DataLoader: total number of tokens: 10,255,324,043 across 103 files
+DataLoader: total number of tokens: 100,000,000 across 1 files
+Tokens processed per iteration: 524288
+Number of micro batches: 32
+Model initialized. Number of parameters : 7082097.
+Training is starting.
+Iter 0000/4768. train loss: 10.830. valid loss: 10.776. lr: 0.00391. 13036 tok/s. uptime: 00h00min. ETA: -1h59min
+Iter 0012/4768. train loss: 10.266. valid loss: 10.214. lr: 0.00391. 404098 tok/s. uptime: 00h00min. ETA: 01h44min
+Iter 0024/4768. train loss: 9.498. valid loss: 9.432. lr: 0.00391. 404103 tok/s. uptime: 00h00min. ETA: 01h44min
+Iter 0036/4768. train loss: 8.646. valid loss: 8.574. lr: 0.00391. 403916 tok/s. uptime: 00h00min. ETA: 01h44min
+Iter 0048/4768. train loss: 7.887. valid loss: 7.817. lr: 0.00391. 403822 tok/s. uptime: 00h01min. ETA: 01h44min
+Iter 0060/4768. train loss: 7.359. valid loss: 7.369. lr: 0.00390. 403912 tok/s. uptime: 00h01min. ETA: 01h43min
+Iter 0072/4768. train loss: 7.107. valid loss: 7.052. lr: 0.00390. 403656 tok/s. uptime: 00h01min. ETA: 01h43min
+Iter 0084/4768. train loss: 6.881. valid loss: 6.858. lr: 0.00390. 403844 tok/s. uptime: 00h01min. ETA: 01h43min
+Iter 0096/4768. train loss: 6.765. valid loss: 6.747. lr: 0.00390. 403828 tok/s. uptime: 00h02min. ETA: 01h43min
+Iter 0108/4768. train loss: 6.578. valid loss: 6.585. lr: 0.00390. 403864 tok/s. uptime: 00h02min. ETA: 01h42min
+Iter 0120/4768. train loss: 6.439. valid loss: 6.397. lr: 0.00390. 403832 tok/s. uptime: 00h02min. ETA: 01h42min

@@ -34,7 +34,7 @@ class LM(nn.Module):
         else:
             raise NotImplementedError
         
-        self.logits_scaler = Scaler(dim=self.config.d_model, init=1, scale=1/math.sqrt(self.config.d_model))
+        self.logits_scaler = Scaler(dim=self.vocab_size, init=1, scale=1/math.sqrt(self.config.d_model))
 
         self.lm_head = nn.Linear(self.config.d_model, self.vocab_size, bias=False)
         self.lm_head.NORMALIZE = 1
@@ -87,7 +87,7 @@ class LM(nn.Module):
         if self.config.mup:
             x = x / self.config.mup_width_mult
 
-        logits = self.logits_scaler * self.lm_head(x)
+        logits = self.logits_scaler() * self.lm_head(x)
         
         if targets is not None:
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)

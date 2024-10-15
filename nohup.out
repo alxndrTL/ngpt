@@ -24,3 +24,4 @@ Iter 0084/4768. train loss: 6.881. valid loss: 6.858. lr: 0.00390. 403844 tok/s.
 Iter 0096/4768. train loss: 6.765. valid loss: 6.747. lr: 0.00390. 403828 tok/s. uptime: 00h02min. ETA: 01h43min
 Iter 0108/4768. train loss: 6.578. valid loss: 6.585. lr: 0.00390. 403864 tok/s. uptime: 00h02min. ETA: 01h42min
 Iter 0120/4768. train loss: 6.439. valid loss: 6.397. lr: 0.00390. 403832 tok/s. uptime: 00h02min. ETA: 01h42min
+Iter 0132/4768. train loss: 6.276. valid loss: 6.347. lr: 0.00390. 403896 tok/s. uptime: 00h02min. ETA: 01h42min

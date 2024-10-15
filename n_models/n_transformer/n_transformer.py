@@ -122,6 +122,7 @@ class MLP(nn.Module):
         self.fc_1.NORMALIZE = 1
         self.fc_2.NORMALIZE = 1
         self.fc_3.NORMALIZE = 1
+        self.fc_2.NORM_FIRST = 1
 
         self.fc1_scaler = Scaler(dim=config.d_ff, init=1, scale=1) # fc1(x) is v
         self.fc3_scaler = Scaler(dim=config.d_ff, init=1, scale=1) # fc3(x) is u
@@ -151,6 +152,7 @@ class SelfAttentionMultiHead(nn.Module):
 
         self.c_proj = nn.Linear(config.d_model, config.d_model, bias=False)
         self.c_proj.NORMALIZE = 1
+        self.c_proj.NORM_FIRST = 1
 
         self.rotary = Rotary(config.d_head)
 

@@ -87,7 +87,12 @@ class LM(nn.Module):
         if self.config.mup:
             x = x / self.config.mup_width_mult
 
-        logits = self.logits_scaler() * self.lm_head(x)
+        pre_logits = self.lm_head(x) # (B, L, vocab_size)
+        print(torch.linalg.vector_norm(self.lm_head.weight, dim=-1))
+        print(torch.linalg.vector_norm(x, dim=-1))
+        print(torch.linalg.vector_norm(pre_logits, dim=-1))
+
+        logits = self.logits_scaler() * pre_logits
         
         if targets is not None:
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
@@ -99,7 +104,11 @@ class LM(nn.Module):
     def norm_weights(self):
         for module in self.modules():
             if hasattr(module, 'NORMALIZE'):
-                F.normalize(module.weight)
+                if hasattr(module, 'NORM_FIRST'): # W_o SA and MLP
+                    module.weight.copy_(F.normalize(module.weight, dim=0))
+                else:
+                    module.weight.copy_(F.normalize(module.weight, dim=-1))
+                #print(module)
         
     def generate(self, prompt, num_tokens: int, sample: bool = True, top_k: int = None, temperature: float = 1.0):
         # prompt : (B, L)

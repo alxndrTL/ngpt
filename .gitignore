@@ -2,3 +2,4 @@ __pycache__/
 runs/
 wandb/
 data/fineweb10B
+*.out

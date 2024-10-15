@@ -85,7 +85,7 @@ alpha = 5
 
 max_grad_norm = 1.0
 
-use_torch_compile = True # do not toggle if using Mamba
+use_torch_compile = False # do not toggle if using Mamba
 
 device = "cuda" # "cpu", "cuda:0", "cuda:1", ...
 dtype = "bfloat16" # "float32" or "bfloat16"
@@ -99,7 +99,7 @@ ckpt = "" # if you want to restart training from a checkpoint (path/to/model.pth
 start_iter = 0 # specify starting iter (if loading from ckpt_60000, put 60001)
 
 # --- logging and eval parameters ---
-log_wandb = True
+log_wandb = False
 
 train_log_interval = 12
 eval_val_interval = 12 # also the printing period
